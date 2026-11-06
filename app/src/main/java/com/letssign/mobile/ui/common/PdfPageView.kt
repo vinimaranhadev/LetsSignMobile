@@ -2,6 +2,7 @@ package com.letssign.mobile.ui.common
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -28,7 +29,7 @@ fun PdfPageView(
     filePath: String,
     page: Int,
     modifier: Modifier = Modifier,
-    content: @Composable BoxWithConstraints.(pageWidthDp: Dp, pageHeightDp: Dp) -> Unit = { _, _ -> }
+    content: @Composable BoxWithConstraintsScope.(pageWidthDp: Dp, pageHeightDp: Dp) -> Unit = { _, _ -> }
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val density = LocalDensity.current
