@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -17,6 +18,12 @@ import com.letssign.mobile.data.storage.PdfPageRenderer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+
+/**
+ * Ponto de injeção usado só por previews/testes de screenshot (JVM/Robolectric não tem
+ * o PdfRenderer nativo). Em produção é null e a página vem do [PdfPageRenderer].
+ */
+val LocalPdfPagePreview = staticCompositionLocalOf<((path: String, page: Int, widthPx: Int) -> android.graphics.Bitmap)?> { null }
 
 /**
  * Renderiza uma página do PDF ocupando a largura disponível, mantendo a
@@ -35,8 +42,13 @@ fun PdfPageView(
         val density = LocalDensity.current
         val targetWidthPx = with(density) { maxWidth.toPx() }.toInt().coerceAtLeast(1)
 
+        val preview = LocalPdfPagePreview.current
         val rendered = produceState<PdfPageRenderer.RenderedPage?>(initialValue = null, filePath, page, targetWidthPx) {
             value = withContext(Dispatchers.IO) {
+                if (preview != null) {
+                    val bmp = preview(filePath, page, targetWidthPx)
+                    return@withContext PdfPageRenderer.RenderedPage(bmp, bmp.width, bmp.height)
+                }
                 try {
                     PdfPageRenderer(File(filePath)).use { it.renderPage(page, targetWidthPx) }
                 } catch (e: Exception) {
