@@ -10,6 +10,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
+import androidx.compose.ui.geometry.Offset
+import android.provider.Settings
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -77,7 +84,7 @@ class TelasScreenshotTest {
         val root = System.getProperty("repoRoot") ?: "."
         val fase = System.getProperty("fase") ?: "depois"
         val dir = File(root, "design/screens/$fase").apply { mkdirs() }
-        return File(dir, "$nome.png").absolutePath
+        return File(dir, "$nome.png").also { it.parentFile?.mkdirs() }.absolutePath
     }
 
     @Before
@@ -147,7 +154,7 @@ class TelasScreenshotTest {
 
     private fun waitText(text: String, substring: Boolean = true) {
         compose.waitUntil(8_000) {
-            compose.onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText(text, substring = substring, ignoreCase = true).fetchSemanticsNodes().isNotEmpty()
         }
         compose.waitForIdle()
     }
@@ -180,7 +187,7 @@ class TelasScreenshotTest {
     @Test fun t03_admin_signatarios() {
         compose.setContent { App { AdminHomeScreen(container, admin, {}, {}, {}, {}, {}) } }
         compose.waitForIdle()
-        compose.onAllNodesWithText("Signatários", substring = true)[0].performClick()
+        compose.onAllNodesWithText("Signatários", substring = true, ignoreCase = true)[0].performClick()
         waitText("Mariana")
         shot("03-admin-signatarios")
     }
@@ -223,7 +230,7 @@ class TelasScreenshotTest {
     @Test fun t06_wizard_titulo() {
         val vm = wizardVm()
         compose.setContent { App { TitlePdfStep(vm, {}, {}) } }
-        waitText("contrato-locacao")
+        waitText("página(s)")
         shot("06-wizard-1-titulo-pdf")
     }
 
@@ -268,6 +275,87 @@ class TelasScreenshotTest {
         compose.mainClock.advanceTimeBy(2_000)
         compose.waitForIdle()
         captureScreenRoboImage(out("12-pad-assinatura"))
+    }
+
+    /* ---------- telas longas: conteúdo abaixo da dobra (linha do tempo, campos) ---------- */
+
+    @Test @Config(qualifiers = "w360dp-h1300dp-xhdpi")
+    fun t05b_detalhe_longo() {
+        compose.setContent { App { DocumentDetailScreen(container, docParcial, {}, {}) } }
+        waitText("Histórico")
+        shot("05b-detalhe-documento-longo")
+    }
+
+    @Test @Config(qualifiers = "w360dp-h1100dp-xhdpi")
+    fun t08b_posicionamento_longo() {
+        val vm = wizardVm()
+        compose.setContent { App { PositioningScreen(vm, {}, {}) } }
+        waitText("Mariana")
+        shot("08b-wizard-3-posicionamento-longo")
+    }
+
+    /* ---------- peça animada: quadros reais no tempo ---------- */
+
+    private fun quadros(prefixo: String, tempos: List<Long>) {
+        var anterior = 0L
+        tempos.forEach { t ->
+            compose.mainClock.advanceTimeBy(t - anterior)
+            anterior = t
+            compose.onRoot().captureRoboImage(out("$prefixo-${t}ms"))
+        }
+    }
+
+    @Test fun t13_rubrica_quadros() {
+        compose.mainClock.autoAdvance = false
+        compose.setContent { App { LoginScreen(container) {} } }
+        quadros("anim/rubrica", listOf(16, 400, 900, 1400, 2000))
+    }
+
+    @Test @Config(qualifiers = "w360dp-h1300dp-xhdpi")
+    fun t14_linha_do_tempo_quadros() {
+        compose.mainClock.autoAdvance = false
+        compose.setContent { App { DocumentDetailScreen(container, docParcial, {}, {}) } }
+        // espera os dados do Room chegarem sem deixar a animação correr à toa
+        compose.mainClock.advanceTimeBy(16)
+        repeat(50) {
+            if (compose.onAllNodesWithText("Histórico", substring = true, ignoreCase = true).fetchSemanticsNodes().isEmpty()) {
+                Thread.sleep(50); compose.mainClock.advanceTimeBy(16)
+            }
+        }
+        quadros("anim/linha-do-tempo", listOf(16, 300, 700, 1300))
+    }
+
+    /** Fluxo real: abrir campo, desenhar no pad, confirmar; o carimbo cai sobre o campo. */
+    @Test @Config(qualifiers = "w360dp-h1000dp-xhdpi")
+    fun t15_carimbo_apos_assinar() {
+        compose.setContent { App { SignDocumentScreen(container, dsPendenteMariana, {}, {}) } }
+        waitText("Toque para assinar")
+        compose.onAllNodesWithText("Toque para assinar", substring = true)[0].performClick()
+        compose.waitForIdle()
+        compose.onNodeWithContentDescription("Área para desenhar a assinatura").performTouchInput {
+            swipe(Offset(width * 0.1f, height * 0.7f), Offset(width * 0.3f, height * 0.2f), 120)
+            swipe(Offset(width * 0.3f, height * 0.6f), Offset(width * 0.8f, height * 0.5f), 120)
+        }
+        compose.waitForIdle()
+        captureScreenRoboImage(out("12b-pad-com-tracos"))
+        compose.mainClock.autoAdvance = false
+        compose.onNodeWithText("Confirmar assinatura").performClick()
+        compose.mainClock.advanceTimeBy(16)
+        quadros("anim/carimbo", listOf(32, 120, 240, 600))
+        compose.mainClock.autoAdvance = true
+        compose.waitForIdle()
+        shot("11b-assinar-documento-campo-assinado")
+    }
+
+    /** Animações desligadas no sistema: no primeiro quadro tudo já aparece pronto. */
+    @Test fun t16_sem_animacao() {
+        val ctx = ApplicationProvider.getApplicationContext<Context>()
+        Settings.Global.putFloat(ctx.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 0f)
+        compose.mainClock.autoAdvance = false
+        compose.setContent { App { LoginScreen(container) {} } }
+        compose.mainClock.advanceTimeBy(16)
+        compose.onRoot().captureRoboImage(out("anim/rubrica-sem-animacao-16ms"))
+        Settings.Global.putFloat(ctx.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
     }
 
     companion object {

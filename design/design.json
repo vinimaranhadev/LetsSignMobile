@@ -1,0 +1,91 @@
+{
+  "projeto": "LetsSignMobile — UI Jetpack Compose em modo criativo",
+  "branch": "ui-criativa",
+  "pipeline_origem": "prospect-local (docs/GERACAO-LANDING.md: Modo criativo, Recursos visuais dinâmicos, Não sair cópia, gauntlet; docs/ANTI-SLOP.md; scripts/cardapio-design.py)",
+  "cardapio": {
+    "como": "design/sorteio.py importa as listas DIRECOES_COR, COMPOSICOES, ORNAMENTOS, FONTES_DISPLAY, FONTES_CORPO e PROIBIDAS_CRIATIVO direto de prospect-local/scripts/cardapio-design.py e sorteia com random.Random(seed); seed tirada de SystemRandom. Resultado bruto em design/sorteio.json.",
+    "seed": 608168,
+    "criativo": {
+      "cor": ["duotom", "Duotom: duas cores fortes que se revezam como fundo das seções; neutros quase ausentes."],
+      "composicao": "Colunas de jornal: seções em 2-3 colunas com fios finos, cabeçalho tipo manchete de capa.",
+      "ornamento": "blocos com sombra dura deslocada e borda grossa (neobrutalista contido)",
+      "display": "Instrument Serif",
+      "corpo": "Source Sans 3",
+      "troca": null,
+      "troca_justificativa": "Nenhum item trocado. Colunas de jornal em 360dp viraram: cabeçalho de capa (linha de edição + fio duplo + manchete serifada) em toda tela, e 2-3 colunas só onde cabem (placar da lista de documentos, datas do acompanhamento, resumo da revisão). Listas longas ficam em coluna única com fios finos e numeração 01, 02, como índice de jornal."
+    },
+    "proibidos_respeitados": ["sem fundo bege/creme/papel (fundo é amarelo marca-texto #F4E04D)", "sem sublinhado ondulado à mão sob título", "sem Fraunces / Plus Jakarta Sans", "sem roxo/rosa Material3 default"]
+  },
+  "paleta": {
+    "Caneta": "#1A2AB8 (azul de caneta esferográfica; fundo das capas e botões)",
+    "MarcaTexto": "#F4E04D (amarelo de grifar; fundo do corpo)",
+    "Tinta": "#0B0F3B (sombra dura, bordas, texto de destaque)",
+    "VermelhoCarimbo": "#8C1414 (erro, falha de envio, carimbo ASSINADO)",
+    "CanetaSuave": "#464EA3 (texto secundário sobre amarelo)",
+    "MarcaSuave": "#C8BC62 (texto secundário sobre azul)",
+    "Papel": "#FFFFFF (só a página do PDF e o bloco de desenho da assinatura)",
+    "contraste_medido_WCAG": {
+      "Caneta x MarcaTexto": 7.01,
+      "Tinta x MarcaTexto": 13.63,
+      "VermelhoCarimbo x MarcaTexto": 7.02,
+      "CanetaSuave x MarcaTexto": 5.42,
+      "MarcaSuave x Caneta": 5.24,
+      "Caneta x branco": 10.16
+    }
+  },
+  "fontes": {
+    "display": "Instrument Serif 400 normal+itálico (OFL, Google Fonts via fontsource), res/font/instrument_serif_*.ttf",
+    "corpo": "Source Sans 3 400/600/700 (OFL), res/font/source_sans_3_*.ttf",
+    "nota": "Arquivos são o subset 'latin' (cobre acentos do pt-BR). ~210 KB no total."
+  },
+  "assinatura": [
+    "Duotom caneta-azul e marca-texto-amarelo: toda tela tem a capa azul em cima e o corpo amarelo embaixo; o branco só aparece onde existe papel de verdade (a página do PDF e a folha de assinar).",
+    "Cabeçalho de capa de jornal em toda tela: linha de edição em caixa-alta espaçada com a data do dia, fio duplo grosso+fino e manchete em Instrument Serif.",
+    "Listas como índice de jornal: número de ordem 01, 02, título serifado grande, fio fino entre itens, sem cartões.",
+    "Botões e folhas são blocos com borda e sombra dura deslocada (sem blur); o botão principal afunda sobre a própria sombra ao ser pressionado.",
+    "Status desenhado, não só colorido: marcador vazio/meio/cheio/X dentro de etiqueta com borda, em caixa-alta.",
+    "O tema assinatura aparece como gesto gráfico recorrente: rubrica escrita na capa do login, '×' de onde assinar em linhas e campos, carimbo vermelho ASSINADO."
+  ],
+  "repetido_de_anteriores": "Nenhum. É a primeira UI do app neste pipeline; não há landings/telas anteriores do mesmo produto para comparar.",
+  "peca_animada": {
+    "principal": {
+      "nome": "Rubrica que se escreve (LoginScreen → RubricaAnimada em CommonComponents.kt)",
+      "proposito": "Abrir o app mostrando o próprio ato de assinar: a rubrica é traçada da esquerda para a direita com a ponta da caneta visível e o sublinhado de fecho entra no final, sobre a linha 'Assinatura do titular'. Tocar na rubrica reescreve.",
+      "tecnologia": "Compose Canvas + PathMeasure.getSegment sobre dois Paths cúbicos fixos; um Animatable 0→1 em 1800 ms (FastOutSlowIn). Sem bibliotecas novas. Custo: 1 Canvas de 84dp de altura, só redesenha durante os 1,8 s.",
+      "fallback": "movimentoReduzido() lê Settings.Global.ANIMATOR_DURATION_SCALE; se for 0 a rubrica aparece completa no 1º quadro (verificado no teste t16_sem_animacao → design/screens/depois/anim/rubrica-sem-animacao-16ms.png). Canvas sem semântica (clearAndSetSemantics), o nome do app e o slogan seguem como texto.",
+      "verificacao": "Quadros reais capturados com relógio de teste controlado: anim/rubrica-16ms, -400ms, -900ms, -1400ms, -2000ms mostram o traço crescendo e a ponta da caneta andando."
+    },
+    "secundarias": [
+      {
+        "nome": "Carimbo ASSINADO",
+        "onde": "SignDocumentScreen, ao confirmar o desenho de um campo",
+        "comportamento": "o carimbo vermelho cai grande e girado sobre o campo e assenta com um tranco (escala 1.9→1, rotação -18°→-10°, 420 ms).",
+        "fallback": "estático com ANIMATOR_DURATION_SCALE = 0",
+        "verificacao": "teste t15 desenha dois traços no pad via toque, confirma e captura anim/carimbo-32ms…600ms + 11b-assinar-documento-campo-assinado.png"
+      },
+      {
+        "nome": "Linha do tempo que se desenha",
+        "onde": "DocumentDetailScreen, histórico de eventos",
+        "comportamento": "o trilho desce de evento em evento (420 ms por trecho) e cada marco aparece quando o traço chega nele; eventos de assinatura/conclusão têm marco cheio, falha em vermelho.",
+        "fallback": "estático com ANIMATOR_DURATION_SCALE = 0",
+        "verificacao": "anim/linha-do-tempo-16ms, -300ms, -700ms, -1300ms"
+      },
+      {
+        "nome": "Botão que afunda",
+        "comportamento": "deslocamento de 4dp sobre a sombra dura em 70 ms ao pressionar. Não conta como peça autoral (é interação de botão); citado só por completude."
+      }
+    ]
+  },
+  "acessibilidade": {
+    "alvos_toque": "botões ≥ 52dp de altura, linhas de lista ≥ 72dp, abas ≥ 48dp, segmentos de classificação 48dp, chips de signatário ≥ 48dp, IconButton 48dp. Exceção: o 'x' de remover DENTRO do campo sobre o PDF tem 24dp (o campo pode ter só ~36dp de altura); para compensar, a PositioningScreen ganhou a lista 'Campos posicionados' com botão de remover de 48dp por campo.",
+    "status_sem_depender_de_cor": "marcadores desenhados (vazio/meio/cheio/X) + texto",
+    "semantica": "abas com Role.Tab + selected; classificação com Role.RadioButton; caixa do signatário com toggleable(Role.Checkbox); rótulos de clique (onClickLabel) nas linhas; erros com contentDescription 'Erro: …'",
+    "telas_testadas": "360x640dp (padrão de todos os testes), 411x891dp (01b-login-tela-grande), 360x1000-1300dp para conteúdo abaixo da dobra"
+  },
+  "escopo_respeitado": {
+    "alterado": ["ui/**/*Screen.kt", "ui/**/*Step.kt", "ui/common/CommonComponents.kt", "ui/common/PdfPageView.kt (visual + ponto de injeção LocalPdfPagePreview para testes, null em produção)", "ui/signer/SignaturePadDialog.kt (visual; geração do PNG da assinatura idêntica)", "ui/theme/Theme.kt", "res/values/colors.xml, themes.xml", "res/drawable/ic_launcher.xml, res/mipmap-anydpi-v26/ic_launcher.xml", "res/font/*"],
+    "nao_alterado": ["ViewModels", "data/", "di/", "session/", "navigation/ (Routes e NavGraph)", "util/"],
+    "posicionamento": "detectTapGestures/detectDragGestures e a conversão px→ratio da PositioningScreen copiadas sem mudança (git diff -w não mostra nenhuma linha com Ratio/detect/addField/moveField/toPx alterada); SignatureFieldEntity continua em ratios 0..1.",
+    "mudancas_de_ux": ["Classificação do signatário: dropdown virou régua segmentada de 3 opções (mesmas opções, mesma chamada changeClassification).", "FAB '+' das listas virou botão fixo 'Novo documento' / 'Cadastrar signatário' no rodapé.", "Botão 'Voltar' no fim da tela de acompanhamento virou seta no cabeçalho (mesmo onBack).", "Diálogo do pad: AlertDialog virou Dialog próprio (mesmas ações Limpar/Cancelar/Confirmar; Confirmar fica desabilitado sem traço — antes o clique sem traço não fazia nada)."]
+  }
+}
