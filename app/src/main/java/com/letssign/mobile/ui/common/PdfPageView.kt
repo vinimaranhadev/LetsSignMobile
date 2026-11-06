@@ -1,6 +1,11 @@
 package com.letssign.mobile.ui.common
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.unit.dp
+import com.letssign.mobile.ui.theme.Caneta
+import com.letssign.mobile.ui.theme.Papel
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,11 +49,13 @@ fun PdfPageView(
 
         val preview = LocalPdfPagePreview.current
         val rendered = produceState<PdfPageRenderer.RenderedPage?>(initialValue = null, filePath, page, targetWidthPx) {
+            if (preview != null) {
+                // preview/teste: desenha na própria thread (Robolectric não aceita outra)
+                val bmp = preview(filePath, page, targetWidthPx)
+                value = PdfPageRenderer.RenderedPage(bmp, bmp.width, bmp.height)
+                return@produceState
+            }
             value = withContext(Dispatchers.IO) {
-                if (preview != null) {
-                    val bmp = preview(filePath, page, targetWidthPx)
-                    return@withContext PdfPageRenderer.RenderedPage(bmp, bmp.width, bmp.height)
-                }
                 try {
                     PdfPageRenderer(File(filePath)).use { it.renderPage(page, targetWidthPx) }
                 } catch (e: Exception) {
@@ -58,7 +65,16 @@ fun PdfPageView(
         }.value
 
         if (rendered == null) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            // Folha em branco na proporção A4 enquanto a página renderiza
+            androidx.compose.foundation.layout.Box(
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f / 1.414f)
+                    .background(Papel),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Caneta, strokeWidth = 3.dp)
+            }
         } else {
             val pageHeightDp = with(density) { rendered.bitmap.height.toFloat().toDp() }
             Image(
