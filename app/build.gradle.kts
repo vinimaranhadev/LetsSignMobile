@@ -42,6 +42,19 @@ android {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all {
+                // Screenshots (Roborazzi) gravados em design/screens/<fase>/ na raiz do repo
+                it.systemProperty("roborazzi.test.record", "true")
+                it.systemProperty("fase", (project.findProperty("fase") ?: "depois").toString())
+                it.systemProperty("repoRoot", rootProject.projectDir.absolutePath)
+                it.maxHeapSize = "2g"
+            }
+        }
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -81,6 +94,13 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     testImplementation("junit:junit:4.13.2")
+    // Screenshots reais das telas no JVM (Robolectric em modo de gráficos nativo + Roborazzi)
+    testImplementation("org.robolectric:robolectric:4.12.2")
+    testImplementation("io.github.takahirom.roborazzi:roborazzi:1.11.0")
+    testImplementation("io.github.takahirom.roborazzi:roborazzi-compose:1.11.0")
+    testImplementation(platform("androidx.compose:compose-bom:2024.06.00"))
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    testImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
 }

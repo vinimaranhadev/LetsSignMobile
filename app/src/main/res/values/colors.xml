@@ -1,3 +1,7 @@
 <resources>
-    <color name="ic_launcher_background">#E6007A</color>
+    <!-- Duotom LetsSign: caneta (azul) + marca-texto (amarelo) -->
+    <color name="caneta">#1A2AB8</color>
+    <color name="marca_texto">#F4E04D</color>
+    <color name="tinta">#0B0F3B</color>
+    <color name="ic_launcher_background">#1A2AB8</color>
 </resources>
