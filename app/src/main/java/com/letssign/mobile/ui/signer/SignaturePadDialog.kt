@@ -51,6 +51,7 @@ import com.letssign.mobile.ui.common.PrimaryButton
 import com.letssign.mobile.ui.common.SecondaryButton
 import com.letssign.mobile.ui.common.blocoDuro
 import com.letssign.mobile.ui.theme.Caneta
+import com.letssign.mobile.ui.theme.Capa
 import com.letssign.mobile.ui.theme.CanetaSuave
 import com.letssign.mobile.ui.theme.MarcaSuave
 import com.letssign.mobile.ui.theme.MarcaTexto
@@ -81,13 +82,13 @@ fun SignaturePadDialog(
 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-            CompositionLocalProvider(LocalContentColor provides MarcaTexto) {
+            CompositionLocalProvider(LocalContentColor provides Caneta) {
                 Column(
                     Modifier
                         .widthIn(max = 560.dp)
                         .fillMaxWidth()
                         .padding(end = 6.dp, bottom = 6.dp)
-                        .blocoDuro(Caneta, sombra = 6.dp)
+                        .blocoDuro(Capa, sombra = 6.dp)
                         .padding(18.dp)
                 ) {
                     Text("ASSINAR · ${fieldLabel.uppercase()}", style = MaterialTheme.typography.labelMedium)
@@ -148,7 +149,7 @@ fun SignaturePadDialog(
                             },
                             enabled = temTraco
                         ) {
-                            Text("Limpar", style = MaterialTheme.typography.labelLarge, color = if (temTraco) MarcaTexto else MarcaSuave)
+                            Text("Limpar", style = MaterialTheme.typography.labelLarge, color = if (temTraco) Caneta else MarcaSuave)
                         }
                     }
                     Spacer(Modifier.height(4.dp))

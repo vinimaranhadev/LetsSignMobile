@@ -35,6 +35,8 @@ import com.letssign.mobile.ui.admin.signers.SignersListScreen
 import com.letssign.mobile.ui.common.Manchete
 import com.letssign.mobile.ui.common.edicaoDoDia
 import com.letssign.mobile.ui.theme.Caneta
+import com.letssign.mobile.ui.theme.Capa
+import com.letssign.mobile.ui.theme.MarcaSuave
 import com.letssign.mobile.ui.theme.MarcaTexto
 
 @Composable
@@ -96,7 +98,7 @@ private fun Aba(texto: String, selecionada: Boolean, modifier: Modifier, onClick
     Box(
         modifier
             .heightIn(min = 48.dp)
-            .background(if (selecionada) MarcaTexto else Caneta)
+            .background(if (selecionada) MarcaTexto else Capa)
             .clickable(role = Role.Tab, onClick = onClick)
             .semantics { selected = selecionada },
         contentAlignment = Alignment.Center
@@ -104,7 +106,7 @@ private fun Aba(texto: String, selecionada: Boolean, modifier: Modifier, onClick
         Text(
             texto.uppercase(),
             style = MaterialTheme.typography.labelMedium,
-            color = if (selecionada) Caneta else MarcaTexto,
+            color = if (selecionada) Caneta else MarcaSuave,
             modifier = Modifier.padding(vertical = 14.dp)
         )
     }

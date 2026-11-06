@@ -6,7 +6,10 @@
     "como": "design/sorteio.py importa as listas DIRECOES_COR, COMPOSICOES, ORNAMENTOS, FONTES_DISPLAY, FONTES_CORPO e PROIBIDAS_CRIATIVO direto de prospect-local/scripts/cardapio-design.py e sorteia com random.Random(seed); seed tirada de SystemRandom. Resultado bruto em design/sorteio.json.",
     "seed": 608168,
     "criativo": {
-      "cor": ["duotom", "Duotom: duas cores fortes que se revezam como fundo das seções; neutros quase ausentes."],
+      "cor": [
+        "duotom",
+        "Duotom: duas cores fortes que se revezam como fundo das seções; neutros quase ausentes."
+      ],
       "composicao": "Colunas de jornal: seções em 2-3 colunas com fios finos, cabeçalho tipo manchete de capa.",
       "ornamento": "blocos com sombra dura deslocada e borda grossa (neobrutalista contido)",
       "display": "Instrument Serif",
@@ -14,23 +17,30 @@
       "troca": null,
       "troca_justificativa": "Nenhum item trocado. Colunas de jornal em 360dp viraram: cabeçalho de capa (linha de edição + fio duplo + manchete serifada) em toda tela, e 2-3 colunas só onde cabem (placar da lista de documentos, datas do acompanhamento, resumo da revisão). Listas longas ficam em coluna única com fios finos e numeração 01, 02, como índice de jornal."
     },
-    "proibidos_respeitados": ["sem fundo bege/creme/papel (fundo é amarelo marca-texto #F4E04D)", "sem sublinhado ondulado à mão sob título", "sem Fraunces / Plus Jakarta Sans", "sem roxo/rosa Material3 default"]
+    "proibidos_respeitados": [
+      "sem fundo bege/creme/papel (fundo é amarelo marca-texto #F4E04D)",
+      "sem sublinhado ondulado à mão sob título",
+      "sem Fraunces / Plus Jakarta Sans",
+      "sem roxo/rosa Material3 default"
+    ]
   },
   "paleta": {
-    "Caneta": "#1A2AB8 (azul de caneta esferográfica; fundo das capas e botões)",
-    "MarcaTexto": "#F4E04D (amarelo de grifar; fundo do corpo)",
-    "Tinta": "#0B0F3B (sombra dura, bordas, texto de destaque)",
+    "Caneta": "#4A2F1F (marrom escuro; texto, fios, botão selecionado)",
+    "MarcaTexto": "#FFFFFF (fundo branco do corpo)",
+    "Capa": "#DCC3A4 (marrom clarinho; cabeçalhos, botão principal, abas, folha de assinar)",
+    "Tinta": "#2B1B11 (sombra dura, bordas)",
     "VermelhoCarimbo": "#8C1414 (erro, falha de envio, carimbo ASSINADO)",
-    "CanetaSuave": "#464EA3 (texto secundário sobre amarelo)",
-    "MarcaSuave": "#C8BC62 (texto secundário sobre azul)",
-    "Papel": "#FFFFFF (só a página do PDF e o bloco de desenho da assinatura)",
+    "CanetaSuave": "#7A5B44 (texto secundário sobre branco)",
+    "MarcaSuave": "#6A4A33 (texto secundário sobre a capa)",
+    "Papel": "#FFFFFF (página do PDF e bloco de assinatura)",
+    "nota": "Paleta trocada de duotom azul/amarelo para branco + marrom clarinho a pedido do usuário; nomes dos tokens mantidos. Screens em design/screens/marrom/.",
     "contraste_medido_WCAG": {
-      "Caneta x MarcaTexto": 7.01,
-      "Tinta x MarcaTexto": 13.63,
-      "VermelhoCarimbo x MarcaTexto": 7.02,
-      "CanetaSuave x MarcaTexto": 5.42,
-      "MarcaSuave x Caneta": 5.24,
-      "Caneta x branco": 10.16
+      "Caneta x branco": 12.23,
+      "Caneta x Capa": 7.21,
+      "Tinta x branco": 16.57,
+      "CanetaSuave x branco": 6.16,
+      "MarcaSuave x Capa": 4.69,
+      "VermelhoCarimbo x branco": 9.44
     }
   },
   "fontes": {
@@ -83,9 +93,31 @@
     "telas_testadas": "360x640dp (padrão de todos os testes), 411x891dp (01b-login-tela-grande), 360x1000-1300dp para conteúdo abaixo da dobra"
   },
   "escopo_respeitado": {
-    "alterado": ["ui/**/*Screen.kt", "ui/**/*Step.kt", "ui/common/CommonComponents.kt", "ui/common/PdfPageView.kt (visual + ponto de injeção LocalPdfPagePreview para testes, null em produção)", "ui/signer/SignaturePadDialog.kt (visual; geração do PNG da assinatura idêntica)", "ui/theme/Theme.kt", "res/values/colors.xml, themes.xml", "res/drawable/ic_launcher.xml, res/mipmap-anydpi-v26/ic_launcher.xml", "res/font/*"],
-    "nao_alterado": ["ViewModels", "data/", "di/", "session/", "navigation/ (Routes e NavGraph)", "util/"],
+    "alterado": [
+      "ui/**/*Screen.kt",
+      "ui/**/*Step.kt",
+      "ui/common/CommonComponents.kt",
+      "ui/common/PdfPageView.kt (visual + ponto de injeção LocalPdfPagePreview para testes, null em produção)",
+      "ui/signer/SignaturePadDialog.kt (visual; geração do PNG da assinatura idêntica)",
+      "ui/theme/Theme.kt",
+      "res/values/colors.xml, themes.xml",
+      "res/drawable/ic_launcher.xml, res/mipmap-anydpi-v26/ic_launcher.xml",
+      "res/font/*"
+    ],
+    "nao_alterado": [
+      "ViewModels",
+      "data/",
+      "di/",
+      "session/",
+      "navigation/ (Routes e NavGraph)",
+      "util/"
+    ],
     "posicionamento": "detectTapGestures/detectDragGestures e a conversão px→ratio da PositioningScreen copiadas sem mudança (git diff -w não mostra nenhuma linha com Ratio/detect/addField/moveField/toPx alterada); SignatureFieldEntity continua em ratios 0..1.",
-    "mudancas_de_ux": ["Classificação do signatário: dropdown virou régua segmentada de 3 opções (mesmas opções, mesma chamada changeClassification).", "FAB '+' das listas virou botão fixo 'Novo documento' / 'Cadastrar signatário' no rodapé.", "Botão 'Voltar' no fim da tela de acompanhamento virou seta no cabeçalho (mesmo onBack).", "Diálogo do pad: AlertDialog virou Dialog próprio (mesmas ações Limpar/Cancelar/Confirmar; Confirmar fica desabilitado sem traço — antes o clique sem traço não fazia nada)."]
+    "mudancas_de_ux": [
+      "Classificação do signatário: dropdown virou régua segmentada de 3 opções (mesmas opções, mesma chamada changeClassification).",
+      "FAB '+' das listas virou botão fixo 'Novo documento' / 'Cadastrar signatário' no rodapé.",
+      "Botão 'Voltar' no fim da tela de acompanhamento virou seta no cabeçalho (mesmo onBack).",
+      "Diálogo do pad: AlertDialog virou Dialog próprio (mesmas ações Limpar/Cancelar/Confirmar; Confirmar fica desabilitado sem traço — antes o clique sem traço não fazia nada)."
+    ]
   }
 }
