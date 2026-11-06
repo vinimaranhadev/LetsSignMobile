@@ -2,41 +2,40 @@ package com.letssign.mobile.ui.admin.newdocument
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,15 +43,31 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.letssign.mobile.ui.common.AcoesWizard
+import com.letssign.mobile.ui.common.AvisoErro
+import com.letssign.mobile.ui.common.BarraDeAcoes
+import com.letssign.mobile.ui.common.EtapasWizard
+import com.letssign.mobile.ui.common.Manchete
+import com.letssign.mobile.ui.common.PdfPageView
 import com.letssign.mobile.ui.common.PrimaryButton
+import com.letssign.mobile.ui.common.SecondaryButton
+import com.letssign.mobile.ui.common.blocoDuro
+import com.letssign.mobile.ui.theme.Caneta
+import com.letssign.mobile.ui.theme.CanetaSuave
+import com.letssign.mobile.ui.theme.MarcaTexto
+import com.letssign.mobile.ui.theme.Tinta
+import com.letssign.mobile.ui.theme.VermelhoCarimbo
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PositioningScreen(
     viewModel: NewDocumentViewModel,
@@ -66,81 +81,152 @@ fun PositioningScreen(
     }
 
     val pdfPath = state.pdfPath
+    val nomeDe = { id: Long -> state.selectedSigners.firstOrNull { it.signer.id == id }?.signer?.fullName ?: "?" }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Posicionar assinaturas (3/4)") }) }) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding).padding(12.dp)) {
-            Text("Toque na página para adicionar um campo para o signatário selecionado.", style = MaterialTheme.typography.bodySmall)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(state.selectedSigners) { selected ->
-                    FilterChip(
-                        selected = activeSignerId == selected.signer.id,
-                        onClick = { activeSignerId = selected.signer.id },
-                        label = { Text(selected.signer.fullName.substringBefore(" ")) }
+    Scaffold(
+        containerColor = MarcaTexto,
+        topBar = {
+            Manchete(
+                titulo = "Onde assinar",
+                edicao = state.title.ifBlank { "Novo documento" },
+                compacta = true,
+                onBack = onBack,
+                rodape = { EtapasWizard(3) }
+            )
+        },
+        bottomBar = {
+            BarraDeAcoes {
+                state.errorMessage?.let { AvisoErro(it) }
+                AcoesWizard("Voltar", onBack, "Continuar", { viewModel.confirmFields(onNext) }, state.isSavingStep)
+            }
+        }
+    ) { padding ->
+        CompositionLocalProvider(LocalContentColor provides Caneta) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Column(Modifier.widthIn(max = 640.dp).fillMaxWidth()) {
+                    Text(
+                        "Escolha quem assina e toque na página onde o campo deve ficar. Arraste para ajustar.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                     )
-                }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                IconButton(onClick = { if (currentPage > 0) currentPage-- }, enabled = currentPage > 0) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Página anterior")
-                }
-                Text(
-                    "Página ${currentPage + 1} de ${state.pageCount}",
-                    modifier = Modifier.weight(1f),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-                IconButton(
-                    onClick = { if (currentPage < state.pageCount - 1) currentPage++ },
-                    enabled = currentPage < state.pageCount - 1
-                ) {
-                    Icon(Icons.Filled.ArrowForward, contentDescription = "Próxima página")
-                }
-            }
-
-            Box(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                if (pdfPath != null) {
-                    com.letssign.mobile.ui.common.PdfPageView(
-                        filePath = pdfPath,
-                        page = currentPage,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .pointerInput(currentPage, activeSignerId) {
-                                detectTapGestures { offset ->
-                                    val signerId = activeSignerId ?: return@detectTapGestures
-                                    val xRatio = offset.x / size.width
-                                    val yRatio = offset.y / size.height
-                                    viewModel.addField(signerId, currentPage, xRatio, yRatio)
-                                }
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp)
+                    ) {
+                        items(state.selectedSigners) { selected ->
+                            val ativo = activeSignerId == selected.signer.id
+                            Box(
+                                Modifier
+                                    .heightIn(min = 48.dp)
+                                    .padding(end = 3.dp, bottom = 3.dp)
+                                    .blocoDuro(if (ativo) Caneta else MarcaTexto, sombra = if (ativo) 3.dp else 0.dp, borda = if (ativo) Tinta else Caneta)
+                                    .clickable(role = Role.RadioButton) { activeSignerId = selected.signer.id }
+                                    .semantics { this.selected = ativo }
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    selected.signer.fullName.substringBefore(" "),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = if (ativo) MarcaTexto else Caneta
+                                )
                             }
-                    ) { pageWidthDp, pageHeightDp ->
-                        state.fields.filter { it.page == currentPage }.forEach { field ->
-                            FieldOverlay(
-                                field = field,
-                                signerInitial = state.selectedSigners.firstOrNull { it.signer.id == field.signerId }
-                                    ?.signer?.fullName?.firstOrNull()?.toString() ?: "?",
-                                pageWidthDp = pageWidthDp,
-                                pageHeightDp = pageHeightDp,
-                                onMove = { nx, ny -> viewModel.moveField(field.key, nx, ny) },
-                                onDelete = { viewModel.deleteField(field.key) }
-                            )
                         }
                     }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp)
+                    ) {
+                        IconButton(onClick = { if (currentPage > 0) currentPage-- }, enabled = currentPage > 0,
+                            colors = IconButtonDefaults.iconButtonColors(contentColor = Caneta, disabledContentColor = CanetaSuave)) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Página anterior")
+                        }
+                        Text(
+                            "Página ${currentPage + 1} de ${state.pageCount}",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center
+                        )
+                        IconButton(
+                            onClick = { if (currentPage < state.pageCount - 1) currentPage++ },
+                            enabled = currentPage < state.pageCount - 1,
+                            colors = IconButtonDefaults.iconButtonColors(contentColor = Caneta, disabledContentColor = CanetaSuave)
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Próxima página")
+                        }
+                    }
+
+                    // A folha: borda grossa + sombra dura, a página do PDF por cima
+                    Box(
+                        Modifier
+                            .padding(start = 16.dp, end = 20.dp, bottom = 4.dp)
+                            .blocoDuro(MarcaTexto)
+                            .padding(2.dp)
+                    ) {
+                        if (pdfPath != null) {
+                            PdfPageView(
+                                filePath = pdfPath,
+                                page = currentPage,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .pointerInput(currentPage, activeSignerId) {
+                                        detectTapGestures { offset ->
+                                            val signerId = activeSignerId ?: return@detectTapGestures
+                                            val xRatio = offset.x / size.width
+                                            val yRatio = offset.y / size.height
+                                            viewModel.addField(signerId, currentPage, xRatio, yRatio)
+                                        }
+                                    }
+                            ) { pageWidthDp, pageHeightDp ->
+                                state.fields.filter { it.page == currentPage }.forEach { field ->
+                                    FieldOverlay(
+                                        field = field,
+                                        signerName = nomeDe(field.signerId).substringBefore(" "),
+                                        pageWidthDp = pageWidthDp,
+                                        pageHeightDp = pageHeightDp,
+                                        onMove = { nx, ny -> viewModel.moveField(field.key, nx, ny) },
+                                        onDelete = { viewModel.deleteField(field.key) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Índice dos campos (alvo de toque de 48dp para remover)
+                    Spacer(Modifier.height(14.dp))
+                    Text(
+                        "CAMPOS POSICIONADOS · ${state.fields.size}",
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    state.fields.forEachIndexed { i, field ->
+                        Row(
+                            Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "${i + 1}. ${nomeDe(field.signerId)} · página ${field.page + 1}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            IconButton(onClick = { viewModel.deleteField(field.key) }) {
+                                Icon(Icons.Filled.Close, contentDescription = "Remover campo ${i + 1}", tint = VermelhoCarimbo)
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
                 }
             }
-
-            state.errorMessage?.let {
-                Text(it, color = Color.Red, style = MaterialTheme.typography.bodySmall)
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Campos posicionados: ${state.fields.size}", style = MaterialTheme.typography.bodySmall)
-            Spacer(modifier = Modifier.height(8.dp))
-            PrimaryButton(text = "Continuar", isLoading = state.isSavingStep, onClick = { viewModel.confirmFields(onNext) })
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Voltar") }
         }
     }
 }
@@ -148,7 +234,7 @@ fun PositioningScreen(
 @Composable
 private fun FieldOverlay(
     field: FieldDraft,
-    signerInitial: String,
+    signerName: String,
     pageWidthDp: Dp,
     pageHeightDp: Dp,
     onMove: (Float, Float) -> Unit,
@@ -164,8 +250,8 @@ private fun FieldOverlay(
         modifier = Modifier
             .offset(x = offsetXDp, y = offsetYDp)
             .size(width = widthDp, height = heightDp)
-            .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(6.dp))
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+            .background(MarcaTexto.copy(alpha = 0.85f), RectangleShape)
+            .border(2.dp, Caneta, RectangleShape)
             .pointerInput(field.key) {
                 detectDragGestures { change, dragAmount ->
                     change.consume()
@@ -183,13 +269,20 @@ private fun FieldOverlay(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Assinatura: $signerInitial",
-                modifier = Modifier.padding(start = 4.dp),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
+                "× $signerName",
+                modifier = Modifier.weight(1f).padding(start = 6.dp),
+                style = MaterialTheme.typography.bodySmall.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                color = Caneta,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-            IconButton(onClick = onDelete, modifier = Modifier.size(20.dp)) {
-                Icon(Icons.Filled.Close, contentDescription = "Remover campo", tint = MaterialTheme.colorScheme.error)
+            Box(
+                Modifier
+                    .size(24.dp)
+                    .clickable(onClickLabel = "Remover campo", onClick = onDelete),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Filled.Close, contentDescription = "Remover campo", tint = VermelhoCarimbo, modifier = Modifier.size(16.dp))
             }
         }
     }
