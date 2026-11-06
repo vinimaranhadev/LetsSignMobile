@@ -17,20 +17,23 @@ import androidx.compose.ui.unit.sp
 import com.letssign.mobile.R
 
 /*
- * Identidade "duotom" (sorteio do modo criativo, seed 608168 — ver design/design.json).
- * Duas cores fortes se revezam como fundo: Caneta (azul de caneta esferográfica) e
- * Marca-texto (amarelo de grifar documento). Tinta é o tom profundo da própria caneta,
- * usado só em sombra dura e texto miúdo. Contrastes medidos: Caneta x Marca-texto 7,0:1,
- * Tinta x Marca-texto 13,6:1, Vermelho-carimbo x Marca-texto 7,0:1.
+ * Paleta branco + marrom clarinho. Os nomes dos tokens ficaram os mesmos do duotom
+ * original para não espalhar renomeação pelas telas:
+ *   MarcaTexto = fundo branco do corpo; Capa = marrom clarinho (cabeçalhos, botões, folhas);
+ *   Caneta = marrom escuro de texto/fios; Tinta = marrom quase preto (sombra dura, bordas).
+ * Contrastes medidos (WCAG): Caneta x branco 12,2:1, Caneta x Capa 7,2:1,
+ * Tinta x branco 16,6:1, CanetaSuave x branco 6,2:1, MarcaSuave x Capa 4,7:1,
+ * VermelhoCarimbo x branco 9,4:1.
  */
-val Caneta = Color(0xFF1A2AB8)
-val MarcaTexto = Color(0xFFF4E04D)
-val Tinta = Color(0xFF0B0F3B)
+val Caneta = Color(0xFF4A2F1F)
+val MarcaTexto = Color(0xFFFFFFFF)
+val Capa = Color(0xFFDCC3A4)
+val Tinta = Color(0xFF2B1B11)
 val VermelhoCarimbo = Color(0xFF8C1414)
-/** Caneta a 80% sobre marca-texto (texto secundário, 5,4:1). */
-val CanetaSuave = Color(0xFF464EA3)
-/** Marca-texto a 80% sobre caneta (texto secundário em fundo azul, 5,2:1). */
-val MarcaSuave = Color(0xFFC8BC62)
+/** Texto secundário sobre branco (6,2:1). */
+val CanetaSuave = Color(0xFF7A5B44)
+/** Texto secundário sobre a capa marrom clarinho (4,7:1). */
+val MarcaSuave = Color(0xFF6A4A33)
 /** Papel do PDF e do bloco de assinatura (o documento real é branco). */
 val Papel = Color(0xFFFFFFFF)
 
@@ -51,8 +54,8 @@ val SourceSans = FontFamily(
 private val Cores = lightColorScheme(
     primary = Caneta,
     onPrimary = MarcaTexto,
-    primaryContainer = Caneta,
-    onPrimaryContainer = MarcaTexto,
+    primaryContainer = Capa,
+    onPrimaryContainer = Caneta,
     secondary = Tinta,
     onSecondary = MarcaTexto,
     background = MarcaTexto,
@@ -92,7 +95,7 @@ val Tipos = Typography(
 
 @Composable
 fun LetsSignTheme(darkTheme: Boolean = false, content: @Composable () -> Unit) {
-    // O duotom é a identidade: mesmo esquema no modo escuro (fundo azul já domina metade das telas).
+    // Mesmo esquema claro no modo escuro (a identidade é o fundo branco + capa marrom clarinho).
     MaterialTheme(colorScheme = Cores, typography = Tipos, content = content)
 }
 

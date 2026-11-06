@@ -49,6 +49,7 @@ import com.letssign.mobile.ui.common.RubricaAnimada
 import com.letssign.mobile.ui.common.blocoDuro
 import com.letssign.mobile.ui.common.edicaoDoDia
 import com.letssign.mobile.ui.theme.Caneta
+import com.letssign.mobile.ui.theme.Capa
 import com.letssign.mobile.ui.theme.CanetaSuave
 import com.letssign.mobile.ui.theme.MarcaSuave
 import com.letssign.mobile.ui.theme.MarcaTexto
@@ -76,12 +77,12 @@ fun LoginScreen(
             .imePadding()
             .verticalScroll(rememberScrollState())
     ) {
-        // Capa azul: nome do jornal + rubrica que se escreve sozinha
-        CompositionLocalProvider(LocalContentColor provides MarcaTexto) {
+        // Capa marrom clarinho: nome do jornal + rubrica que se escreve sozinha
+        CompositionLocalProvider(LocalContentColor provides Caneta) {
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .background(Caneta)
+                    .background(Capa)
                     .statusBarsPadding()
                     .padding(horizontal = 20.dp)
                     .padding(top = 14.dp, bottom = 16.dp)
@@ -116,7 +117,7 @@ fun LoginScreen(
             }
         }
 
-        // Corpo amarelo: o acesso
+        // Corpo branco: o acesso
         CompositionLocalProvider(LocalContentColor provides Caneta) {
             Column(
                 Modifier

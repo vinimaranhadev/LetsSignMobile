@@ -81,6 +81,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import com.letssign.mobile.data.local.entity.DocumentStatus
 import com.letssign.mobile.data.local.entity.SignatureStatus
 import com.letssign.mobile.ui.theme.Caneta
+import com.letssign.mobile.ui.theme.Capa
 import com.letssign.mobile.ui.theme.CanetaSuave
 import com.letssign.mobile.ui.theme.MarcaSuave
 import com.letssign.mobile.ui.theme.MarcaTexto
@@ -141,7 +142,7 @@ fun Rubrica(texto: String, modifier: Modifier = Modifier, cor: Color = LocalCont
 private val dataCabecalho = SimpleDateFormat("d MMM yyyy", Locale("pt", "BR"))
 
 /**
- * Cabeçalho de capa: faixa azul (Caneta) com a linha de edição, fio duplo e a manchete
+ * Cabeçalho de capa: faixa marrom clarinho (Capa) com a linha de edição, fio duplo e a manchete
  * em serifada. Ocupa a status bar (edge-to-edge).
  */
 @Composable
@@ -156,11 +157,11 @@ fun Manchete(
     acoes: @Composable RowScope.() -> Unit = {},
     rodape: @Composable ColumnScope.() -> Unit = {}
 ) {
-    CompositionLocalProvider(LocalContentColor provides MarcaTexto) {
+    CompositionLocalProvider(LocalContentColor provides Caneta) {
         Column(
             modifier
                 .fillMaxWidth()
-                .background(Caneta)
+                .background(Capa)
                 .statusBarsPadding()
                 .padding(start = 20.dp, end = 8.dp, top = 6.dp, bottom = paddingInferior ?: if (compacta) 10.dp else 16.dp)
         ) {
@@ -235,8 +236,8 @@ fun BotaoDuro(
     isLoading: Boolean = false,
     enabled: Boolean = true,
     cheio: Boolean = true,
-    fundoCheio: Color = Caneta,
-    textoCheio: Color = MarcaTexto,
+    fundoCheio: Color = Capa,
+    textoCheio: Color = Caneta,
     contornoClaro: Boolean = false,
     onClick: () -> Unit
 ) {
@@ -246,8 +247,8 @@ fun BotaoDuro(
     val sombraBase = if (cheio) 4.dp else 0.dp
     val deslocamento by animateDpAsState(if (pressionado && ativo) sombraBase else 0.dp, tween(70), label = "afundar")
     val fundo = if (cheio && ativo) fundoCheio else Color.Transparent
-    val corContorno = if (contornoClaro) MarcaTexto else Caneta
-    val claro = contornoClaro || fundoCheio == MarcaTexto
+    val corContorno = Caneta
+    val claro = contornoClaro
     val corTexto = when {
         !ativo -> if (claro) MarcaSuave else CanetaSuave
         cheio -> textoCheio
@@ -492,7 +493,7 @@ private fun tracoFecho(): Path = Path().apply {
 @Composable
 fun RubricaAnimada(
     modifier: Modifier = Modifier,
-    cor: Color = MarcaTexto,
+    cor: Color = Caneta,
     duracaoMs: Int = 1800,
     progressoFixo: Float? = null
 ) {
@@ -552,7 +553,7 @@ fun RubricaAnimada(
 
 /** Linha de assinatura com o "X" de onde assinar, sob a rubrica. */
 @Composable
-fun LinhaDeAssinatura(legenda: String, modifier: Modifier = Modifier, cor: Color = MarcaTexto) {
+fun LinhaDeAssinatura(legenda: String, modifier: Modifier = Modifier, cor: Color = Caneta) {
     Column(modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.Bottom) {
             Text("×", style = MaterialTheme.typography.titleLarge, color = cor)
@@ -630,7 +631,7 @@ fun BarraDeAcoes(modifier: Modifier = Modifier, conteudo: @Composable ColumnScop
 fun ordem(i: Int): String = (i + 1).toString().padStart(2, '0')
 
 @Composable
-fun Iniciais(nome: String, modifier: Modifier = Modifier, fundo: Color = Caneta, texto: Color = MarcaTexto) {
+fun Iniciais(nome: String, modifier: Modifier = Modifier, fundo: Color = Capa, texto: Color = Caneta) {
     val ini = nome.trim().split(" ").filter { it.isNotBlank() }.let {
         ((it.firstOrNull()?.take(1) ?: "") + (if (it.size > 1) it.last().take(1) else "")).uppercase()
     }
@@ -663,14 +664,14 @@ fun EtapasWizard(atual: Int, modifier: Modifier = Modifier) {
                         .fillMaxWidth()
                         .height(6.dp)
                         .then(
-                            if (n <= atual) Modifier.background(MarcaTexto)
+                            if (n <= atual) Modifier.background(Caneta)
                             else Modifier.border(1.dp, MarcaSuave, RectangleShape)
                         )
                 )
                 Text(
                     "$n · $nome",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (n == atual) MarcaTexto else MarcaSuave,
+                    color = if (n == atual) Caneta else MarcaSuave,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 4.dp)
